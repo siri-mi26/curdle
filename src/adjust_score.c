@@ -12,13 +12,13 @@
  * \bug The \ref adjust_score_file function does not yet work.
  */
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 // for off_t
 #include <sys/types.h>
@@ -32,21 +32,179 @@ const size_t FIELD_SIZE = FIELD_SIZE_;
  */
 const size_t REC_SIZE = REC_SIZE_;
 
-/** Initialize a \ref score_record struct.
- *
- * \param rec pointer to a \ref score_record struct to initialize.
- * \param name player name to be inserted into `rec`.
- * \param score player score to be inserted into `rec`.
- */
-void score_record_init(struct score_record *rec, const char *name, int score)
+// /** Initialize a \ref score_record struct.
+//  *
+//  * \param rec pointer to a \ref score_record struct to initialize.
+//  * \param name player name to be inserted into `rec`.
+//  * \param score player score to be inserted into `rec`.
+//  */
+// void score_record_init(struct score_record *rec, const char *name, int score)
+// {
+//   // this function is needed to initialize a score_record,
+//   // because you can't *assign* to the name member -- it's an array.
+//   // so we must copy the name in.
+//   memset(rec->name, 0, FIELD_SIZE);
+//   strncpy(rec->name, name, FIELD_SIZE);
+//   rec->name[FIELD_SIZE - 1] = '\0';
+//   rec->score = score;
+// }
+
+// /** Return the size of the open file with file descriptor `fd`.
+//  * If the size cannot be determined, the function may abort program
+//  * execution (optionally after printing an error message).
+//  *
+//  * `filename` is used for diagnostic purposes only, and may be `NULL`.
+//  * If non-NULL, it represent the name of the file path from which
+//  * `fd` was obtained.
+//  *
+//  * \param filename name of the file path from which `fd` was obtained.
+//  * \param fd file descriptor for an open file.
+//  * \return the size of the file described by `fd`.
+//  */
+// size_t file_size(const char *filename, int fd)
+// {
+
+//   // int fseek(fd, 0L, SEEK_END);
+
+//   // return ftell(fd);
+//   return -1;
+// }
+
+// /** Parse a \ref score_record struct from an
+//  * array of size \ref REC_SIZE.
+//  *
+//  * If a name and score cannot be found in `rec_buf`,
+//  * the function may abort program
+//  * execution (optionally after printing an error message).
+//  *
+//  * \param rec_buf an array of size \ref REC_SIZE.
+//  * \return a parsed \ref score_record.
+//  */
+// struct score_record parse_record(char rec_buf[REC_SIZE])
+// {
+//   struct score_record rec;
+//   // void score_record_init(struct score_record *rec, const char *name, int score)
+//   score_record_init(&rec, "foo", 2);
+
+//   // Note that writing the `rec_buf` parameter as `rec_buf[REC_SIZE]`
+//   // serves only as documentation of the intended use of the
+//   // function - C doesn't prevent arrays of other sizes being passed.
+//   //
+//   // In fact, nearly any time you use an array type in C,
+//   // it "decays" into a pointer -
+//   // the C11 standard, sec 6.3.2.1 ("Lvalues, arrays, and
+//   // function designators").
+//   //
+//   // (One significant exception is when you use sizeof() on an
+//   // array - in that case, the proper size of the array is
+//   // returned.)
+//   return rec;
+// }
+
+// /** Stores the player name and score in `rec` into a buffer of size
+//  * \ref REC_SIZE, representing a line from the scores file.
+//  *
+//  * The fields of rec should contain values that are valid for the
+//  * scores file; if not, the behaviour of the function is undefined.
+//  *
+//  * If the caller passes a buffer of size less than \ref REC_SIZE,
+//  * the behaviour of function is undefined.
+//  *
+//  * \param buf a `char` array of size \ref REC_SIZE.
+//  * \param rec pointer to a player's score record.
+//  */
+// void store_record(char buf[REC_SIZE], const struct score_record *rec)
+// {
+// }
+
+// /** search within the open scores file with file descriptor
+//  * `fd` for a line containing the score for `player_name`.
+//  * If no such line exists, -1 is returned; otherwise, the
+//  * offset within the file is returned.
+//  *
+//  * `filename` is used only for diagnostic purposes.
+//  *
+//  * \param filename name of the file described by `fd`.
+//  * \param fd file descriptor for an open scores file.
+//  * \param player_name player name to seek for.
+//  * \return position in the file where a record can be found,
+//  *   or -1 if no no such record exists.
+//  */
+// off_t find_record(const char *filename, int fd, const char *player_name)
+// {
+//   return -1;
+// }
+
+// /** Adjust the score for player `player_name` in the open file
+//  * with file descriptor `fd`, incrementing it by
+//  * `score_to_add`. If no record for a player with that name
+//  * is found in the file, then one is created and appended to
+//  * the file.
+//  *
+//  * The `filename` parameter is purely for diagnostic purposes.
+//  *
+//  * If the file is not a valid "scores" file, or player name is
+//  * longer than the allowable length for a score record,
+//  * the function may abort program execution.
+//  *
+//  * \param filename name of the file from which `fd` was obtained.
+//  * \param fd file descriptor for an open scores file.
+//  * \param player_name name of the player whose score should be incremented.
+//  * \param score_to_add amount by which to increment the score.
+//  */
+// void adjust_score_file(const char *filename, int fd, const char *player_name, int score_to_add)
+// {
+// }
+
+static uid_t ruid, euid, rgid, egid;
+
+/* Make effecive user ID = the real user ID */
+void drop_privs()
 {
-  // this function is needed to initialize a score_record,
-  // because you can't *assign* to the name member -- it's an array.
-  // so we must copy the name in.
-  memset(rec->name, 0, FIELD_SIZE);
-  strncpy(rec->name, name, FIELD_SIZE);
-  rec->name[FIELD_SIZE - 1] = '\0';
-  rec->score = score;
+
+  printf("drop_privs\n");
+  return;
+  int status1;
+  int status2;
+  status1 = seteuid(ruid);
+  status2 = setegid(rgid);
+  printf("ruid, euid: %i %i\n", ruid, euid);
+
+  if (status1 < 0)
+  {
+    fprintf(stderr, "Couldn't set uid.\n");
+    exit(status1);
+  }
+  if (status2 < 0)
+  {
+    fprintf(stderr, "Couldn't set group uid.\n");
+    exit(status2);
+  }
+  return;
+}
+/* Make real ID = effective ID
+This will increase the privileges of the calling process */
+void get_privs()
+{
+  printf("get_privs\n");
+  return;
+  int status1;
+  int status2;
+  status1 = setuid(euid);
+  status2 = setgid(egid);
+  printf("ruid, euid: %i %i\n", ruid, euid);
+
+  if (status1 < 0)
+  {
+    fprintf(stderr, "Couldn't set uid.\n");
+    exit(status1);
+  }
+  if (status2 < 0)
+  {
+    fprintf(stderr, "Couldn't set group uid.\n");
+    exit(status2);
+  }
+  return;
 }
 
 /** Adjust the score for player `player_name`, incrementing it by
@@ -70,152 +228,17 @@ void score_record_init(struct score_record *rec, const char *name, int score)
 int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **message)
 {
   printf("adjust_score\n");
-  return 0;
-}
-
-/** Return the size of the open file with file descriptor `fd`.
- * If the size cannot be determined, the function may abort program
- * execution (optionally after printing an error message).
- *
- * `filename` is used for diagnostic purposes only, and may be `NULL`.
- * If non-NULL, it represent the name of the file path from which
- * `fd` was obtained.
- *
- * \param filename name of the file path from which `fd` was obtained.
- * \param fd file descriptor for an open file.
- * \return the size of the file described by `fd`.
- */
-size_t file_size(const char *filename, int fd)
-{
-
-  // int fseek(fd, 0L, SEEK_END);
-
-  // return ftell(fd);
-  return -1;
-}
-
-/** Parse a \ref score_record struct from an
- * array of size \ref REC_SIZE.
- *
- * If a name and score cannot be found in `rec_buf`,
- * the function may abort program
- * execution (optionally after printing an error message).
- *
- * \param rec_buf an array of size \ref REC_SIZE.
- * \return a parsed \ref score_record.
- */
-struct score_record parse_record(char rec_buf[REC_SIZE])
-{
-  struct score_record rec;
-  // void score_record_init(struct score_record *rec, const char *name, int score)
-  score_record_init(&rec, "foo", 2);
-
-  // Note that writing the `rec_buf` parameter as `rec_buf[REC_SIZE]`
-  // serves only as documentation of the intended use of the
-  // function - C doesn't prevent arrays of other sizes being passed.
-  //
-  // In fact, nearly any time you use an array type in C,
-  // it "decays" into a pointer -
-  // the C11 standard, sec 6.3.2.1 ("Lvalues, arrays, and
-  // function designators").
-  //
-  // (One significant exception is when you use sizeof() on an
-  // array - in that case, the proper size of the array is
-  // returned.)
-  return rec;
-}
-
-/** Stores the player name and score in `rec` into a buffer of size
- * \ref REC_SIZE, representing a line from the scores file.
- *
- * The fields of rec should contain values that are valid for the
- * scores file; if not, the behaviour of the function is undefined.
- *
- * If the caller passes a buffer of size less than \ref REC_SIZE,
- * the behaviour of function is undefined.
- *
- * \param buf a `char` array of size \ref REC_SIZE.
- * \param rec pointer to a player's score record.
- */
-void store_record(char buf[REC_SIZE], const struct score_record *rec)
-{
-}
-
-/** search within the open scores file with file descriptor
- * `fd` for a line containing the score for `player_name`.
- * If no such line exists, -1 is returned; otherwise, the
- * offset within the file is returned.
- *
- * `filename` is used only for diagnostic purposes.
- *
- * \param filename name of the file described by `fd`.
- * \param fd file descriptor for an open scores file.
- * \param player_name player name to seek for.
- * \return position in the file where a record can be found,
- *   or -1 if no no such record exists.
- */
-off_t find_record(const char *filename, int fd, const char *player_name)
-{
-  return -1;
-}
-
-/** Adjust the score for player `player_name` in the open file
- * with file descriptor `fd`, incrementing it by
- * `score_to_add`. If no record for a player with that name
- * is found in the file, then one is created and appended to
- * the file.
- *
- * The `filename` parameter is purely for diagnostic purposes.
- *
- * If the file is not a valid "scores" file, or player name is
- * longer than the allowable length for a score record,
- * the function may abort program execution.
- *
- * \param filename name of the file from which `fd` was obtained.
- * \param fd file descriptor for an open scores file.
- * \param player_name name of the player whose score should be incremented.
- * \param score_to_add amount by which to increment the score.
- */
-void adjust_score_file(const char *filename, int fd, const char *player_name, int score_to_add)
-{
-}
-
-static uid_t euid, ruid;
-void drop_privs()
-{
-  int status;
-  status = seteuid(ruid);
-  status = setreuid(euid, ruid);
-  if (status < 0)
-  {
-    fprintf(stderr, "Couldn't set uid.\n");
-    exit(status);
-  }
-}
-void get_privs()
-{
-}
-
-int main()
-{
-  // static uid_t euid, ruid, egid, rgid; // effective gID, real UID
-  // ruid = getuid();                     // real = lower
-  // euid = geteuid();                    // effective = higher
-  // euid = ruid;                         // higher becomes lower. so it was higher cuz of program exec but now it gonna be lower for rest of processing
-  // egid = getpgrp();
-  // egid = rgid;
-
-  char *message;
-  adjust_score(1000, "Jess", 20, &message);
-  return 0;
+  ruid = uid;
+  FILE *fp;
+  char line[REC_SIZE];
+  char line_player[FIELD_SIZE];
+  char line_score[10];
   const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/tests/test-files/good/file1";
   // const char *filename = "/var/lib/curdle/scores";
 
-  FILE *fp;
-
-  // do_setuid ();
+  get_privs();
   fp = fopen(filename, "r");
-  // undo_setuid ();
+  drop_privs();
 
   if (fp == NULL)
   {
@@ -223,23 +246,54 @@ int main()
     exit(EXIT_FAILURE);
   }
 
-  char line[20];
-  while (!feof(fp))
+  while (fgets(line, sizeof(line), fp) != NULL)
   {
-    fgets(line, sizeof(line), fp);
-    printf("%s", line);
+    if (line[0] != '\n')
+    {
+
+      strncpy(line_player, line, FIELD_SIZE);
+      strncpy(line_score, &line[10], FIELD_SIZE);
+      line_player[10] = '\0';
+      // printf("line_player %s\n",line_player);
+      // printf("player_name %s\n",player_name);
+/* 
+      int len;
+      len = strlen(line_player);
+
+      printf("len %i\n", len);
+
+      int ret = strncmp(line_player, player_name, FIELD_SIZE);
+      // printf("ret %i\n",ret);
+      
+      if (ret == 0)
+      {
+        printf("here\n");
+        int int_line_score = atoi(line_score);
+        printf("line_score %i\n", int_line_score);
+      } */
+      // printf("line: %s\n", line);
+      printf("line player:%s | line score:%s\n", line_player, line_score);
+    }
   }
-  // while (fgets(line,sizeof(line),fp)) {
-  //   printf("line\n");
-  //   printf("%s\n",line);
-  // }
+
   // increase privileges and then drop them
 
-  // if fd = -1, "File did not open error";
-  // int fstat_details = fstat(fd,&st);
-  // printf("\n The userID and the GroupID of the owner of the file are [%d] and [%d] respectively \n", (int)st.st_uid, (int)st.st_gid);
-  // file_size(filename,fd);
   // struct score_record rec = parse_record(REC_SIZE);
   fclose(fp);
+
+  return 0;
+}
+
+int main()
+{
+  char *message;
+  ruid = getuid();
+  euid = geteuid();
+  rgid = getgid();
+  egid = getegid();
+
+  drop_privs();
+  adjust_score(1001, "M5V7qCGu", 20, &message); // in here, privileges are dropped
+
   return 0;
 }
