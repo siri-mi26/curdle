@@ -1,4 +1,4 @@
-#include "curdle.h"
+// TODO: run in gitpod
 
 /** \file adjust_score.c
  * \brief Functions for safely amending a player's score in the
@@ -22,6 +22,7 @@
 
 // for off_t
 #include <sys/types.h>
+#include "curdle.h"
 
 /** Size of a field (name or score) in a line of the `scores`
  * file.
@@ -43,7 +44,7 @@ const size_t REC_SIZE = REC_SIZE_;
 //   // this function is needed to initialize a score_record,
 //   // because you can't *assign* to the name member -- it's an array.
 //   // so we must copy the name in.
-//   memset(rec->name, 0, FIELD_SIZE);
+  // memset(rec->name, 0, FIELD_SIZE);
 //   strncpy(rec->name, name, FIELD_SIZE);
 //   rec->name[FIELD_SIZE - 1] = '\0';
 //   rec->score = score;
@@ -162,7 +163,6 @@ static uid_t ruid, euid, rgid, egid;
 void drop_privs()
 {
 
-  printf("drop_privs\n");
   return;
   int status1;
   int status2;
@@ -186,7 +186,7 @@ void drop_privs()
 This will increase the privileges of the calling process */
 void get_privs()
 {
-  printf("get_privs\n");
+
   return;
   int status1;
   int status2;
@@ -227,17 +227,39 @@ void get_privs()
  */
 int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **message)
 {
-  printf("adjust_score\n");
+
   ruid = uid;
   FILE *fp;
   char line[REC_SIZE];
   char line_player[FIELD_SIZE];
   char line_score[10];
+  char new_name[FIELD_SIZE];
   const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/tests/test-files/good/file1";
+  int offset = 0;
+  char newline[REC_SIZE];
+  char strscore[FIELD_SIZE];
   // const char *filename = "/var/lib/curdle/scores";
 
+  // parse name
+  strncpy(new_name, player_name, 10);
+  int playerlen = strlen(player_name);
+  if (playerlen < 10)
+  {
+    int remaining = 10 - strlen(player_name);
+    for (int i = 0; i < remaining; i++)
+    {
+      int tmp = playerlen + i; // 8+0=8, 8+1=9
+      new_name[tmp] = ' ';
+    }
+  }
+  new_name[10] = '\0';
+
+  printf("new_name %s\n", new_name);
+  printf("strlen new_name %li\n", strlen(new_name));
+
   get_privs();
-  fp = fopen(filename, "r");
+  fp = fopen(filename, "r+");
+
   drop_privs();
 
   if (fp == NULL)
@@ -246,34 +268,70 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
     exit(EXIT_FAILURE);
   }
 
-  while (fgets(line, sizeof(line), fp) != NULL)
+  while (fgets(line, REC_SIZE, fp) != NULL)
   {
+
     if (line[0] != '\n')
     {
-
       strncpy(line_player, line, FIELD_SIZE);
       strncpy(line_score, &line[10], FIELD_SIZE);
-      line_player[10] = '\0';
+
+      line_player[10] = 0;
       // printf("line_player %s\n",line_player);
-      // printf("player_name %s\n",player_name);
-/* 
-      int len;
-      len = strlen(line_player);
 
-      printf("len %i\n", len);
+      // printf("line_player %s\n", line_player);
+      // printf("strlen line_player %li\n", strlen(line_player));
+      // printf("player_name %s\n", player_name);
+      // printf("strlen player_name %li\n", strlen(player_name));
 
-      int ret = strncmp(line_player, player_name, FIELD_SIZE);
+      int ret = strncmp(player_name, line_player, FIELD_SIZE);
       // printf("ret %i\n",ret);
-      
+
       if (ret == 0)
       {
-        printf("here\n");
+
         int int_line_score = atoi(line_score);
-        printf("line_score %i\n", int_line_score);
-      } */
+        printf("bf line_score %i\n", int_line_score);
+        int_line_score += score_to_add;
+
+        sprintf(strscore, "%i", int_line_score);
+        printf("af line_score %i\n", int_line_score);
+        char new_score[FIELD_SIZE];
+
+        // pad score
+        strncpy(new_score, strscore, 10);
+        printf("new_score %s\n", new_score);
+        int scorelen = strlen(strscore);
+        if (scorelen < 10)
+        {
+          int remaining = 10 - scorelen;
+          for (int i = 0; i < remaining; i++)
+          {
+            int tmp = scorelen + i; // 8+0=8, 8+1=9
+            new_score[tmp] = ' ';
+          }
+        }
+        new_score[10] = '\0';
+
+        printf("strlen new_score %li\n", strlen(new_score));
+        printf("new_score %s\n", new_score);
+        strcat(newline, new_name);
+        strcat(newline, strscore);
+        
+        printf("offset %i\n",offset);
+        fseek(fp, offset+1, SEEK_SET);
+        
+        printf("newline %s\n",newline);
+        
+        fputs(newline, fp);
+      }
+
       // printf("line: %s\n", line);
-      printf("line player:%s | line score:%s\n", line_player, line_score);
+      // printf("line player:%s | line score:%s\n", line_player, line_score);
     }
+    // printf("strlen line %li\n", strlen(line));
+    offset += 21;
+    // printf("offset %i\n", offset);
   }
 
   // increase privileges and then drop them
@@ -293,7 +351,7 @@ int main()
   egid = getegid();
 
   drop_privs();
-  adjust_score(1001, "M5V7qCGu", 20, &message); // in here, privileges are dropped
+  adjust_score(1001, "nzqf", 20, &message); // in here, privileges are dropped
 
   return 0;
 }
