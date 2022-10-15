@@ -304,7 +304,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
       // printf("player_name %s\n", player_name);
       // printf("strlen player_name %li\n", strlen(player_name));
 
-
+      printf("her22e\n");
       
 
       int ret = strncmp(player_name, line_player, FIELD_SIZE);
@@ -364,16 +364,16 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         for (size_t i = 0; i < FIELD_SIZE; i++) // 21
         {
           printf("newline after adding newname[i] %c\n", newline[i]);
-          if (newline[i] == '\0') {
-            sprintf(&newline[i], "%s", " ");
-          }
+          // if (newline[i] == '\0') {
+          //   sprintf(&newline[i], "%s", " ");
+          // }
         }
         
 
 
 
-        printf("strlen new_name %li\n", strlen(new_score));
-        printf("sizeof new_name %li\n", sizeof(new_name));
+        // printf("strlen new_name %li\n", strlen(new_score));
+        // printf("sizeof new_name %li\n", sizeof(new_name));
         // printf("strlen new_score %li\n", strlen(new_score));
         // printf("sizeof new_score %li\n", sizeof(new_score));
 
@@ -384,8 +384,16 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         
 
 
-        printf("newline strscore print %s\n", newline);
-        strcat(newline, strscore);
+        // printf("newline strscore print %s\n", newline);
+        
+        // STRCAT
+        // strcat(newline, strscore);
+        sprintf(&newline[10], "%s", strscore);
+
+
+
+
+
         // sprintf(&newline[strlen(new_name)], "%s", "\0");
         sprintf(&newline[20], "%s", "\n");
         for (size_t i = 0; i < REC_SIZE; i++) // 21
@@ -397,7 +405,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         
         // printf("strlen strscore %li\n", strlen(strscore));
         // printf("sizeof strscore %li\n", sizeof(strscore));
-        printf("newline strscore print %s\n", newline);
+        // printf("newline strscore print %s\n", newline);
 
 
         // for (size_t i = 0; i < REC_SIZE; i++) //ind[9], so all 10 chars
@@ -417,7 +425,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         // printf("new_score print |%s|\n", new_score);
         // printf("newline print %s\n", newline);
         // printf("strlen newline %li\n", strlen(newline));
-        printf("sizeof newline %li\n", sizeof(newline));
+        // printf("sizeof newline %li\n", sizeof(newline));
         // newline[21] = '\n';
 
         fseek(fp, bytes, SEEK_SET);
@@ -429,7 +437,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
 
         for (size_t i = 0; i < REC_SIZE; i++) // 21
         {
-          printf("newline[i] %c\n", newline[i]);
+          // printf("newline[i] %c\n", newline[i]);
           fputc(newline[i], fp);
         }
 
