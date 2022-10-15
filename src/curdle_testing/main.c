@@ -11,6 +11,7 @@
 #include "curdle.h"
 #include "adjust_score.h"
 
+#define _GNU_SOURCE
 static uid_t ruid, euid, rgid, egid;
 
 /* Make effecive user ID = the real user ID */
@@ -78,7 +79,7 @@ int main()
   drop_privs();
   message = "Error message, check main()";
   
-  adjust_score(1001, "5", 10, &message); // in here, privileges are dropped
+  adjust_score(1001, "goni", 10, &message); // in here, privileges are dropped
 
   return 0;
 }
