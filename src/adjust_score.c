@@ -158,8 +158,8 @@ const size_t REC_SIZE = REC_SIZE_;
 // {
 // }
 
-static uid_t ruid, euid, rgid, egid;
 
+static uid_t ruid, euid, rgid, egid;
 /* Make effecive user ID = the real user ID */
 void drop_privs()
 {
@@ -337,7 +337,9 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
 
 int main()
 {
+  
   char *message;
+  
   ruid = getuid();
   euid = geteuid();
   rgid = getgid();
