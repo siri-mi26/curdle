@@ -311,6 +311,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
 
       if (ret == 0)
       {
+        printf("here\n");
         // for (size_t i = 0; i < FIELD_SIZE; i++) // 21
         // {
         //   printf("line_player[i] %c\n", line_player[i]);
@@ -358,34 +359,29 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         // }
 
         strncpy(newline, new_name, strlen(new_name));
+
+
+        for (size_t i = 0; i < FIELD_SIZE; i++) // 21
+        {
+          printf("newline after adding newname[i] %c\n", newline[i]);
+          if (newline[i] == '\0') {
+            sprintf(&newline[i], "%s", " ");
+          }
+        }
+        
+
+
+
         printf("strlen new_name %li\n", strlen(new_score));
         printf("sizeof new_name %li\n", sizeof(new_name));
         // printf("strlen new_score %li\n", strlen(new_score));
         // printf("sizeof new_score %li\n", sizeof(new_score));
 
 
-        // for (int i = 0; i < FIELD_SIZE; i++) //ind[9], so all 10 chars
-        // {
-        //   if (new_name[i] == "\0") {
-        //     sprintf(&newline[i], "%s", "\0");   
-        //     printf("here\n");       
-        //   }
-        // }
         
-
-
-
-
-
-
-        for (size_t i = 0; i < REC_SIZE; i++) // 21
-        {
-          printf("newline after adding newname[i] %c\n", newline[i]);
-          
-        }
         
-
-
+        
+        
 
 
         printf("newline strscore print %s\n", newline);
@@ -402,6 +398,20 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         // printf("strlen strscore %li\n", strlen(strscore));
         // printf("sizeof strscore %li\n", sizeof(strscore));
         printf("newline strscore print %s\n", newline);
+
+
+        // for (size_t i = 0; i < REC_SIZE; i++) //ind[9], so all 10 chars
+        // {
+        //   if (newline[i] == '\0') {
+        //     printf("h2ere\n");
+        //     sprintf(&newline[i], "%s", "\0");   
+                   
+        //   }
+        // }
+
+
+
+
 
         // printf("new_name print %s|\n", new_name);
         // printf("new_score print |%s|\n", new_score);
