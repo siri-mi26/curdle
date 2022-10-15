@@ -1,4 +1,5 @@
 // TODO: run in gitpod
+// TODO: change pathname to curdle
 
 /** \file adjust_score.c
  * \brief Functions for safely amending a player's score in the
@@ -236,7 +237,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   char line_score[FIELD_SIZE];
   char new_name[FIELD_SIZE];
   const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/tests/test-files/good/file1";
-  // const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/src/file.txt";
+  // const char *filename = "/var/lib/curdle/scores";
 
   int bytes = 0;
   int count = 0;
@@ -246,30 +247,13 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   char strscore[FIELD_SIZE];
   char new_score[FIELD_SIZE];
 
-  // const char *filename = "/var/lib/curdle/scores";
+  
 
   // parse name
   memset(new_name, 0, FIELD_SIZE);
   memset(newline, 0, REC_SIZE);
 
   strncpy(new_name, player_name, FIELD_SIZE);
-
-  // memcpy(new_name, player_name, strlen(player_name));
-
-  // int playerlen = strlen(player_name); //7
-  // if (playerlen < 10)
-  // {
-  //   int remaining = 10 - strlen(player_name); //3
-  //   for (int i = 0; i < remaining; i++) //i<4 , 0,1,2
-  //   {
-  //     int tmp = playerlen + i; // 7+0=7, 8,9,10
-  //     new_name[tmp] = ' ';
-  //   }
-  // }
-  // new_name[FIELD_SIZE - 1] = '\0';
-
-  // printf("new_name %s\n", new_name);
-  // printf("strlen new_name %li\n", strlen(new_name));
 
   get_privs();
   fp = fopen(filename, "r+");
@@ -293,127 +277,57 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
       // parsing through allllll the strings
       strncpy(line_player, line, FIELD_SIZE);
       strncpy(line_score, &line[10], FIELD_SIZE);
-      // printf("here %s\n",&line[10]);
-      // printf("sizeof &line[10] %li\n", sizeof(line_score));
-      // printf("stlren &line[10] %li\n", strlen(line_score));
-
+     
       line_player[FIELD_SIZE - 1] = 0;
-      // printf("line_player %s\n",line_player);
-
-      // printf("strlen line_player %li\n", strlen(line_player));
-      // printf("player_name %s\n", player_name);
-      // printf("strlen player_name %li\n", strlen(player_name));
-
+   
       int ret = strncmp(player_name, line_player, FIELD_SIZE);
 
       if (ret == 0)
       {
 
-        // for (size_t i = 0; i < FIELD_SIZE; i++) // 21
-        // {
-        //   printf("line_player[i] %c\n", line_player[i]);
-
-        // }
         int_line_score = atoi(line_score);
 
-        printf("bf line_score %i\n", int_line_score);
+        // printf("bf line_score %i\n", int_line_score);
 
         int_line_score += score_to_add;
 
         sprintf(strscore, "%i", int_line_score);
-        // printf("af line_score %i\n", int_line_score);
-        // printf("af strscore %s\n", strscore);
-
-        // pad score
-
-        // memset(new_name, 0, FIELD_SIZE);
+      
         memset(new_score, 0, FIELD_SIZE);
         strncpy(new_score, strscore, FIELD_SIZE);
 
-        printf("af new_score %s\n", new_score);
-        // int scorelen = strlen(strscore);
-        // if (scorelen < 10)
-        // {
-        //   int remaining = 10 - scorelen; //4
-        //   for (int i = 0; i < remaining; i++) //0,1,2,3
-        //   {
-        //     int tmp = scorelen + i; // 4,5,6,7
-        //     new_score[tmp] = ' ';
-        //   }
-        // }
-        new_score[FIELD_SIZE - 1] = '\0';
-        // for (size_t i = 0; i < FIELD_SIZE; i++) // 21
-        // {
-        //   printf("new_score[i] %c\n", new_score[i]);
-
-        // }
-        //  for (size_t i = 0; i < FIELD_SIZE; i++) // 21
-        // {
-
-        //   printf("newname[i] %c\n", new_name[i]);
-
-        // }
+        // printf("af new_score %s\n", new_score);
+       
+       
+        
+     
 
         strncpy(newline, new_name, strlen(new_name));
 
-        /* for (size_t i = 0; i < FIELD_SIZE; i++) // 21
-        {
-          // printf("newline after adding newname[i] %c\n", newline[i]);
-
-        }
-         */
-
-        // printf("strlen new_name %li\n", strlen(new_score));
-        // printf("sizeof new_name %li\n", sizeof(new_name));
-        // printf("strlen new_score %li\n", strlen(new_score));
-        // printf("sizeof new_score %li\n", sizeof(new_score));
-
-        // printf("newline strscore print %s\n", newline);
-
-        // STRCAT
-        // strcat(newline, strscore);
+        
         sprintf(&newline[10], "%s", strscore);
 
-        // sprintf(&newline[strlen(new_name)], "%s", "\0");
+        
         sprintf(&newline[20], "%s", "\n");
-        for (size_t i = 0; i < REC_SIZE; i++) // 21
-        {
-          printf("newline after adding strscore[i] %c\n", newline[i]);
-        }
-
-        // printf("strlen strscore %li\n", strlen(strscore));
-        // printf("sizeof strscore %li\n", sizeof(strscore));
-        // printf("newline strscore print %s\n", newline);
-
-        // for (size_t i = 0; i < REC_SIZE; i++) //ind[9], so all 10 chars
+        // for (size_t i = 0; i < REC_SIZE; i++)
         // {
-        //   if (newline[i] == '\0') {
-        //     printf("h2ere\n");
-        //     sprintf(&newline[i], "%s", "\0");
-
-        //   }
+        //   printf("newline after adding strscore[i] %c\n", newline[i]);
         // }
 
-        // printf("new_name print %s|\n", new_name);
-        // printf("new_score print |%s|\n", new_score);
-        // printf("newline print %s\n", newline);
-        // printf("strlen newline %li\n", strlen(newline));
-        // printf("sizeof newline %li\n", sizeof(newline));
-
-        // printf("bytes right before in %i\n", bytes);
+       
         fseek(fp, bytes, SEEK_SET);
 
-        for (size_t i = 0; i < REC_SIZE; i++) // 21
+        for (size_t i = 0; i < REC_SIZE; i++) 
         {
-          // printf("newline[i] %c\n", newline[i]);
+          
           fputc(newline[i], fp);
         }
       }
     }
-    // printf("count %i\n", count);
+    
 
     count++;
-    bytes = 21 * count; // as 21
+    bytes = 21 * count;
   }
 
   fclose(fp);
