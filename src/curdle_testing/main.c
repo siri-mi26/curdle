@@ -78,7 +78,7 @@ int main()
   drop_privs();
   message = "Error message, check main()";
   
-  adjust_score(1001, "idH0O0", 10, &message); // in here, privileges are dropped
+  adjust_score(1001, "5", 10, &message); // in here, privileges are dropped
 
   return 0;
 }
