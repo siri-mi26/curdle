@@ -166,8 +166,8 @@ void drop_privs()
   return;
   int status1;
   int status2;
-  status1 = seteuid(ruid);
-  status2 = setegid(rgid);
+  // status1 = seteuid(ruid);
+  // status2 = setegid(rgid);
   printf("ruid, euid: %i %i\n", ruid, euid);
 
   if (status1 < 0)
@@ -230,7 +230,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
 
   ruid = uid;
   FILE *fp;
-  FILE *fp2;
+
   char line[REC_SIZE];
   char line_player[FIELD_SIZE];
   char line_score[FIELD_SIZE];
@@ -241,9 +241,11 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   int bytes = 0;
   int count = 0;
   char newline[REC_SIZE];
+  int int_line_score = 0;
 
   char strscore[FIELD_SIZE];
   char new_score[FIELD_SIZE];
+
   // const char *filename = "/var/lib/curdle/scores";
 
   // parse name
@@ -251,8 +253,6 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   memset(newline, 0, REC_SIZE);
 
   strncpy(new_name, player_name, FIELD_SIZE);
-
-  
 
   // memcpy(new_name, player_name, strlen(player_name));
 
@@ -279,18 +279,18 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   if (fp == NULL)
   {
     printf("exit\n");
+    printf("Error message: %s", *message);
     exit(EXIT_FAILURE);
   }
 
-  while (fgets(line, REC_SIZE, fp) != NULL)
+  while (fgets(line, REC_SIZE+1, fp) != NULL)
   {
-
-    bytes = 22 * count;
-    // printf("bytes1 %i\n", bytes);
-
+    
+    
+    
     if (line[0] != '\n')
     {
-      //parsing through allllll the strings
+      // parsing through allllll the strings
       strncpy(line_player, line, FIELD_SIZE);
       strncpy(line_score, &line[10], FIELD_SIZE);
       // printf("here %s\n",&line[10]);
@@ -304,36 +304,33 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
       // printf("player_name %s\n", player_name);
       // printf("strlen player_name %li\n", strlen(player_name));
 
-      printf("her22e\n");
-      
-
       int ret = strncmp(player_name, line_player, FIELD_SIZE);
 
       if (ret == 0)
       {
-        printf("here\n");
+
         // for (size_t i = 0; i < FIELD_SIZE; i++) // 21
         // {
         //   printf("line_player[i] %c\n", line_player[i]);
-          
+
         // }
-        int int_line_score = atoi(line_score);
+        int_line_score = atoi(line_score);
 
         printf("bf line_score %i\n", int_line_score);
 
         int_line_score += score_to_add;
 
         sprintf(strscore, "%i", int_line_score);
-        printf("af line_score %i\n", int_line_score);
+        // printf("af line_score %i\n", int_line_score);
+        // printf("af strscore %s\n", strscore);
 
         // pad score
 
         // memset(new_name, 0, FIELD_SIZE);
         memset(new_score, 0, FIELD_SIZE);
-
         strncpy(new_score, strscore, FIELD_SIZE);
-        
-        // printf("new_score %s\n", new_score);
+
+        printf("af new_score %s\n", new_score);
         // int scorelen = strlen(strscore);
         // if (scorelen < 10)
         // {
@@ -348,107 +345,75 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         // for (size_t i = 0; i < FIELD_SIZE; i++) // 21
         // {
         //   printf("new_score[i] %c\n", new_score[i]);
-          
-          
+
         // }
         //  for (size_t i = 0; i < FIELD_SIZE; i++) // 21
         // {
-          
+
         //   printf("newname[i] %c\n", new_name[i]);
-          
+
         // }
 
         strncpy(newline, new_name, strlen(new_name));
 
-
-        for (size_t i = 0; i < FIELD_SIZE; i++) // 21
+        /* for (size_t i = 0; i < FIELD_SIZE; i++) // 21
         {
-          printf("newline after adding newname[i] %c\n", newline[i]);
-          // if (newline[i] == '\0') {
-          //   sprintf(&newline[i], "%s", " ");
-          // }
+          // printf("newline after adding newname[i] %c\n", newline[i]);
+
         }
-        
-
-
+         */
 
         // printf("strlen new_name %li\n", strlen(new_score));
         // printf("sizeof new_name %li\n", sizeof(new_name));
         // printf("strlen new_score %li\n", strlen(new_score));
         // printf("sizeof new_score %li\n", sizeof(new_score));
 
-
-        
-        
-        
-        
-
-
         // printf("newline strscore print %s\n", newline);
-        
+
         // STRCAT
         // strcat(newline, strscore);
         sprintf(&newline[10], "%s", strscore);
-
-
-
-
 
         // sprintf(&newline[strlen(new_name)], "%s", "\0");
         sprintf(&newline[20], "%s", "\n");
         for (size_t i = 0; i < REC_SIZE; i++) // 21
         {
           printf("newline after adding strscore[i] %c\n", newline[i]);
-          
         }
-        
-        
+
         // printf("strlen strscore %li\n", strlen(strscore));
         // printf("sizeof strscore %li\n", sizeof(strscore));
         // printf("newline strscore print %s\n", newline);
-
 
         // for (size_t i = 0; i < REC_SIZE; i++) //ind[9], so all 10 chars
         // {
         //   if (newline[i] == '\0') {
         //     printf("h2ere\n");
-        //     sprintf(&newline[i], "%s", "\0");   
-                   
+        //     sprintf(&newline[i], "%s", "\0");
+
         //   }
         // }
-
-
-
-
 
         // printf("new_name print %s|\n", new_name);
         // printf("new_score print |%s|\n", new_score);
         // printf("newline print %s\n", newline);
         // printf("strlen newline %li\n", strlen(newline));
         // printf("sizeof newline %li\n", sizeof(newline));
-        // newline[21] = '\n';
 
+        // printf("bytes right before in %i\n", bytes);
         fseek(fp, bytes, SEEK_SET);
-
-        char *back;
-
-   back = strchr(newline, '\n');
-   printf("back %s\n",back);
 
         for (size_t i = 0; i < REC_SIZE; i++) // 21
         {
           // printf("newline[i] %c\n", newline[i]);
           fputc(newline[i], fp);
         }
-
-
-        
-        // fputc(newline[REC_SIZE-1],fp);
-
-        // fputs(newline, fp);
       }
     }
+    // printf("count %i\n", count);
+
     count++;
+    bytes = 21 * count; // as 21
   }
 
   fclose(fp);
@@ -465,7 +430,9 @@ int main()
   egid = getegid();
 
   drop_privs();
-  adjust_score(1001, "VlP6XIX", 20, &message); // in here, privileges are dropped
+  message = "Error message, check main()";
+  
+  adjust_score(1001, "idH0O0", 10, &message); // in here, privileges are dropped
 
   return 0;
 }
