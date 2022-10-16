@@ -1,15 +1,16 @@
 // TODO: run in gitpod
 // TODO: change pathname to curdle
+// TODO: check that u dont need gnu source
 
-/** \file adjust_score.c
- * \brief Functions for safely amending a player's score in the
+/**
+ * Functions for safely amending a player's score in the
  * `/var/lib/curdle/scores` file.
  *
  * Contains the adjust_score_file function, plus supporting data
  * structures and functions used by that function.
  *
  * ### Known bugs
- * \bug privileges are not used when opening file
+ * \bug No known ones
  */
 
 #include <stdio.h>
@@ -35,6 +36,8 @@ const size_t REC_SIZE = REC_SIZE_;
 int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **message)
 {
 
+  return 0;
+
   FILE *fp;
   const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/tests/test-files/good/file1";
   // const char *filename = "/var/lib/curdle/scores";
@@ -54,6 +57,10 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
 
   long final_pos = (long)malloc(sizeof(long));
 
+  // Variables to determine status of dropping privileges or gaining privileges
+  int status1;
+  int status2;
+
   // Setting variables to all \0 so they are 10 in length and padded
   memset(new_name, 0, FIELD_SIZE);
   memset(newline, 0, REC_SIZE);
@@ -62,13 +69,27 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
 
   // parse name
   get_privs();
+  /* setuid(geteuid());
+  setgid(getegid());
+  if (status1 < 0)
+  {
+    fprintf(stderr, "Couldn't set real user/group ID to effective user/group ID. Privileges were not increased enough.\n");
+    exit(status1);
+  } */
   fp = fopen(filename, "r+");
-  drop_privs();
-
+  drop_privs(uid, 1002); // TODO:
+  /* setuid(getuid());
+  setgid(getgid());
+  if (status2 < 0)
+  {
+    fprintf(stderr, "Couldn't set effective user ID/group ID back to real user/group ID. Privileges not dropped.\n");
+    exit(status2);
+  }
+ */
   // Initialise end of file to find position where new player is added
   fseek(fp, 0, SEEK_END);
   final_pos = ftell(fp);
-  // printf("final_pos: %li\n", final_pos);
+  
 
   // Reset file pointer to start again
   fseek(fp, 0, SEEK_SET);
@@ -90,7 +111,6 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
       strncpy(line_score, &line[10], FIELD_SIZE);
 
       // If player exists, modifies score
-
       if (strncmp(player_name, line_player, FIELD_SIZE) == 0) // false
       {
         int_line_score = atoi(line_score);
@@ -105,10 +125,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         strncpy(newline, new_name, strlen(new_name)); // TODO:
         sprintf(&newline[10], "%s", strscore);
         sprintf(&newline[20], "%s", "\n");
-        // for (size_t i = 0; i < REC_SIZE; i++)
-        // {
-        //   printf("newline after adding strscore[i] %c\n", newline[i]);
-        // }
+
         fseek(fp, bytes, SEEK_SET);
 
         for (size_t i = 0; i < REC_SIZE; i++)
@@ -133,7 +150,6 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         fseek(fp, -0, SEEK_END);
         for (size_t i = 0; i < REC_SIZE; i++)
         {
-          // printf("newline after adding strscore[i] %c\n", newline[i]);
           fputc(newline[i], fp);
         }
 

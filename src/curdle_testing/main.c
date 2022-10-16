@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -11,19 +12,19 @@
 #include "curdle.h"
 #include "adjust_score.h"
 
-#define _GNU_SOURCE
+
 static uid_t ruid, euid, rgid, egid;
 
 /* Make effecive user ID = the real user ID */
-void drop_privs()
+void drop_privs(uid_t uid, uid_t gid)
 {
-  return;
+  
   
   int status1;
   int status2;
   // Set effectives to real
-  // status1 = seteuid(ruid);
-  // status2 = setegid(rgid);
+  status1 = seteuid(uid);
+  status2 = setegid(gid);
   printf("ruid, euid: %i %i\n", ruid, euid);
 
   if (status1 < 0)
@@ -76,7 +77,7 @@ int main()
   printf("ruid, euid, rgid, egid %d %d %d %d\n", ruid, euid, rgid, egid);
   
 
-  drop_privs();
+  // drop_privs(1001, 1002);
   message = "Error message, check main()";
   
   adjust_score(1001, "goni", 10, &message); // in here, privileges are dropped
