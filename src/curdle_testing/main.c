@@ -81,9 +81,10 @@ int main()
 
   // drop_privs( 1001,  1001);
 
-  message = "Error message, check main()";
+  // message = "Error message, check main()";
 
-  adjust_score(1001, "alice", 92, &message); // in here, privileges are dropped
+  adjust_score(1001, "alice", 9999999999, &message);
+  printf("tmp %s\n", message);
   // get_privs(1000,1000);
 
   return 0;

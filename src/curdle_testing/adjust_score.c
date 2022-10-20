@@ -34,12 +34,12 @@ const size_t FIELD_SIZE = FIELD_SIZE_;
  */
 const size_t REC_SIZE = REC_SIZE_;
 
-/* Make effective user ID = the real user ID provided */
+/* Set effective user ID to the real user ID provided, dropping privileges. */
 int drop_privs(uid_t uid, char **message)
 {
   int status1;
   int status2;
-  // Set effective IDs to real
+
   status2 = setegid(getgid());
   status1 = seteuid(uid);
 
@@ -47,7 +47,6 @@ int drop_privs(uid_t uid, char **message)
 
   if (status1 < 0)
   {
-    // perror("setuid");
     char *error_message = malloc(250 * sizeof(char)); // 250 character string perhaps
     error_message = "Couldn't set user ID.";
     *message = error_message;
@@ -57,13 +56,13 @@ int drop_privs(uid_t uid, char **message)
   {
     char *error_message = malloc(250 * sizeof(char));
     error_message = "Couldn't set group ID.";
-    // fprintf(stderr, "Couldn't set group ID.\n");
     *message = error_message;
     exit(EXIT_FAILURE);
   }
   return 1;
 }
 
+/* Set the real user ID to the effective, gaining privileges. */
 int get_privs(char **message)
 {
   int status1;
@@ -74,16 +73,13 @@ int get_privs(char **message)
 
   if (status1 < 0)
   {
-    char *error_message = malloc(250 * sizeof(char)); // 250 character string perhaps
+    char *error_message = malloc(250 * sizeof(char));
     error_message = "Couldn't set user ID.";
     *message = error_message;
-
     exit(EXIT_FAILURE);
   }
   if (status2 < 0)
   {
-    // fprintf(stderr, "Couldn't set group uid.\n");
-    // exit(status2);
     char *error_message = malloc(250 * sizeof(char));
     error_message = "Couldn't set group ID.";
     *message = error_message;
@@ -97,7 +93,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   FILE *fp;
   // const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/tests/test-files/good/file1";
   // const char *filename = "boo.txt";
-  const char *filename = "/var/lib/curdle/scores";
+  // const char *filename = "/var/lib/curdle/scores";
 
   char line[REC_SIZE];
   char line_player[FIELD_SIZE];
@@ -111,14 +107,10 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   int bytes = 0;
   int count = 0;
   int int_line_score = 0;
-  
+
   printf("tmp %d\n", uid);
 
   long final_pos = (long)malloc(sizeof(long));
-
-  // Variables to determine status of dropping privileges or gaining privileges
-  // int status1;
-  // int status2;
 
   // Setting variables to all \0 so they are 10 in length and padded
   memset(new_name, 0, FIELD_SIZE);
@@ -126,6 +118,9 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   memset(new_score, 0, FIELD_SIZE);
   memset(strscore, 0, FIELD_SIZE);
   strncpy(new_name, player_name, FIELD_SIZE);
+
+  printf("tmp %d\n", INT_MAX);
+  printf("tmp %d\n", INT_MIN);
 
   // get_privs(message);
   fp = fopen(filename, "r+");
@@ -171,17 +166,14 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   {
     if (ftell(fp) < 21)
     {
-      printf("here\n");
       char *error_message = malloc(250 * sizeof(char));
       error_message = "File invalid. Line too short.";
       *message = error_message;
-      
       exit(EXIT_FAILURE);
     }
 
     if (line[20] != '\n')
     {
-
       char *error_message = malloc(250 * sizeof(char));
       error_message = "File invalid. Line too long.";
       *message = error_message;
@@ -190,17 +182,16 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
 
     if (line[0] == '\n')
     {
-      printf("here\n");
+
       char *error_message = malloc(250 * sizeof(char));
       error_message = "File invalid. Blank lines in between.";
       *message = error_message;
-
       exit(EXIT_FAILURE);
     }
 
     if (line[0] != '\n')
     {
-      printf("here\n");
+
       // Parses the line into the player name and score
       strncpy(line_player, line, FIELD_SIZE);
       strncpy(line_score, &line[10], FIELD_SIZE);
@@ -211,17 +202,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
         int_line_score = atoi(line_score);
         printf("bf new_score %s\n", line_score);
         int_line_score += score_to_add;
-        // if (int_line_score >= -999999999 || int_line_score <= 9999999999)
-        // {
-        //   // printf("Total score is now invalid. %s\n", *message);
-        //   // exit(EXIT_FAILURE);
-        //   continue;
-
-        // }
-        // else {
-        //   printf("Total score is now invalid. %s\n", *message);
-        //   exit(EXIT_FAILURE);
-        // }
+        
         sprintf(strscore, "%i", int_line_score); // TODO:
         memcpy(new_score, strscore, FIELD_SIZE + 1);
         printf("af new_score %s\n", new_score);
@@ -243,7 +224,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
       // If player doesn't exist, put player name and score into new line and add to file
       if (ftell(fp) == final_pos)
       {
-printf("here\n");
+
         sprintf(strscore, "%i", score_to_add);
         strncpy(new_score, strscore, FIELD_SIZE);
 
