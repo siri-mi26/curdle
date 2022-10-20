@@ -14,63 +14,63 @@
 #include "adjust_score.h"
 uid_t ruid, euid, rgid, egid;
 
-/* Make effective user ID = the real user ID */
-void drop_privs(uid_t uid, uid_t gid)
-{
+// /* Make effective user ID = the real user ID provided */
+// void drop_privs(uid_t uid, uid_t gid)
+// {
+//   int status1;
+//   int status2;
+//   // Set effective IDs to real
+//   status2 = setegid(gid);
+//   status1 = seteuid(uid);
 
+//   printf("ruid, euid: %i %i\n", ruid, euid);
 
-  int status1;
-  int status2;
-  // Set effectives to real
-  status2 = setegid(gid);
-  status1 = seteuid(uid);
+//   if (setegid(1001) < 0)
+//   {
+//     perror("setgid");
+//     fprintf(stderr, "Couldn't set group uid.\n");
+//   }
+//   printf("ruid, euid, rgid, egid %d %d %d %d\n", getuid(), geteuid(), getgid(), getegid());
 
-  printf("ruid, euid: %i %i\n", ruid, euid);
-
-  if (setegid(1001) < 0)
-  {
-    perror("setgid");
-    fprintf(stderr, "Couldn't set group uid.\n");
-  }
-  printf("ruid, euid, rgid, egid %d %d %d %d\n", getuid(), geteuid(), getgid(), getegid());
-
-  if (status1 < 0)
-  {
-    // fprintf(stderr, "Couldn't set uid.\n");
-    perror("setuid");
-    exit(status1);
-  }
-  if (status2 < 0)
-  {
-    fprintf(stderr, "Couldn't set group uid.\n");
-    exit(status2);
-  }
-  return;
-}
+//   if (status1 < 0)
+//   {
+//     // fprintf(stderr, "Couldn't set uid.\n");
+//     perror("setuid");
+//     exit(status1);
+//   }
+//   if (status2 < 0)
+//   {
+//     fprintf(stderr, "Couldn't set group uid.\n");
+//     exit(status2);
+//   }
+//   return;
+// }
 /* Make real ID = effective ID
 This will increase the privileges of the calling process */
-void get_privs()
-{
+// void get_privs()
+// {
 
-  return;
-  int status1;
-  int status2;
-  // status1 = setuid(euid);
-  // status2 = setgid(egid);
-  printf("ruid, euid: %i %i\n", ruid, euid);
+//   return;
+//   int status1;
+//   int status2;
+  
+//   status2 = setgid(getgid());
+//   status1 = setuid(getuid());
+  
 
-  if (status1 < 0)
-  {
-    fprintf(stderr, "Couldn't set uid.\n");
-    exit(status1);
-  }
-  if (status2 < 0)
-  {
-    fprintf(stderr, "Couldn't set group uid.\n");
-    exit(status2);
-  }
-  return;
-}
+//   if (status1 < 0)
+//   {
+//     fprintf(stderr, "Couldn't set uid.\n");
+
+//     exit(status1);
+//   }
+//   if (status2 < 0)
+//   {
+//     fprintf(stderr, "Couldn't set group uid.\n");
+//     exit(status2);
+//   }
+//   return;
+// }
 
 int main()
 {
@@ -83,7 +83,7 @@ int main()
 
   message = "Error message, check main()";
 
-  adjust_score(1001, "goni", 10, &message); // in here, privileges are dropped
+  adjust_score(1001, "alice", 92, &message); // in here, privileges are dropped
   // get_privs(1000,1000);
 
   return 0;
