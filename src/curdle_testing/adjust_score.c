@@ -93,7 +93,7 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   FILE *fp;
   // const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/tests/test-files/good/file1";
   // const char *filename = "boo.txt";
-  // const char *filename = "/var/lib/curdle/scores";
+  const char *filename = "/var/lib/curdle/scores";
 
   char line[REC_SIZE];
   char line_player[FIELD_SIZE];
@@ -200,14 +200,14 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
       if (strncmp(player_name, line_player, FIELD_SIZE) == 0) // false
       {
         int_line_score = atoi(line_score);
-        printf("bf new_score %s\n", line_score);
+
         int_line_score += score_to_add;
-        
-        sprintf(strscore, "%i", int_line_score); // TODO:
+
+        sprintf(strscore, "%i", int_line_score);
         memcpy(new_score, strscore, FIELD_SIZE + 1);
-        printf("af new_score %s\n", new_score);
+
         // Copy both fields into new line and add \n at end
-        strncpy(newline, new_name, strlen(new_name)); // TODO:
+        strncpy(newline, new_name, strlen(new_name));
         sprintf(&newline[10], "%s", strscore);
         sprintf(&newline[20], "%s", "\n");
 
