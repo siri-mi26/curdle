@@ -83,7 +83,7 @@ int main()
 
   // message = "Error message, check main()";
 
-  adjust_score(1001, "alice", 9999999999, &message);
+  adjust_score(1001, "alice", 92, &message);
   printf("tmp %s\n", message);
   // get_privs(1000,1000);
 

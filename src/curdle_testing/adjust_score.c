@@ -1,6 +1,3 @@
-// TODO: run in gitpod
-// TODO: change pathname to curdle
-
 /**
  * Functions for safely amending a player's score in the
  * `/var/lib/curdle/scores` file.
@@ -9,9 +6,9 @@
  * structures and functions used by that function.
  *
  * ### Known bugs
- * \bug No known ones
+ * \bug Possibly dropping and getting privileges
  */
-
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -42,8 +39,6 @@ int drop_privs(uid_t uid, char **message)
 
   status2 = setegid(getgid());
   status1 = seteuid(uid);
-
-  printf("ruid, euid, rgid, egid %d %d %d %d\n", getuid(), geteuid(), getgid(), getegid());
 
   if (status1 < 0)
   {
@@ -91,8 +86,6 @@ int get_privs(char **message)
 int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **message)
 {
   FILE *fp;
-  // const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/tests/test-files/good/file1";
-  // const char *filename = "boo.txt";
   const char *filename = "/var/lib/curdle/scores";
 
   char line[REC_SIZE];
@@ -108,8 +101,6 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   int count = 0;
   int int_line_score = 0;
 
-  printf("tmp %d\n", uid);
-
   long final_pos = (long)malloc(sizeof(long));
 
   // Setting variables to all \0 so they are 10 in length and padded
@@ -119,12 +110,9 @@ int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **me
   memset(strscore, 0, FIELD_SIZE);
   strncpy(new_name, player_name, FIELD_SIZE);
 
-  printf("tmp %d\n", INT_MAX);
-  printf("tmp %d\n", INT_MIN);
-
-  // get_privs(message);
+  get_privs(message);
   fp = fopen(filename, "r+");
-  // drop_privs(ruid, message);
+  drop_privs(uid, message);
 
   // Initialise end of file to find position where new player is added
   fseek(fp, 0, SEEK_END);

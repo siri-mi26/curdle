@@ -1,16 +1,15 @@
 // TODO: run in gitpod
 // TODO: change pathname to curdle
 
-/** \file adjust_score.c
- * \brief Functions for safely amending a player's score in the
+/**
+ * Functions for safely amending a player's score in the
  * `/var/lib/curdle/scores` file.
  *
- * Contains the \ref adjust_score_file function, plus supporting data
+ * Contains the adjust_score_file function, plus supporting data
  * structures and functions used by that function.
  *
  * ### Known bugs
- *
- * \bug The \ref adjust_score_file function does not yet work.
+ * \bug No known ones
  */
 
 #include <stdio.h>
@@ -20,10 +19,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-
-// for off_t
 #include <sys/types.h>
+#include <limits.h>
 #include "curdle.h"
+
+// #include "adjust_score.h"
 
 /** Size of a field (name or score) in a line of the `scores`
  * file.
@@ -34,321 +34,219 @@ const size_t FIELD_SIZE = FIELD_SIZE_;
  */
 const size_t REC_SIZE = REC_SIZE_;
 
-// /** Initialize a \ref score_record struct.
-//  *
-//  * \param rec pointer to a \ref score_record struct to initialize.
-//  * \param name player name to be inserted into `rec`.
-//  * \param score player score to be inserted into `rec`.
-//  */
-// void score_record_init(struct score_record *rec, const char *name, int score)
-// {
-//   // this function is needed to initialize a score_record,
-//   // because you can't *assign* to the name member -- it's an array.
-//   // so we must copy the name in.
-// memset(rec->name, 0, FIELD_SIZE);
-//   strncpy(rec->name, name, FIELD_SIZE);
-//   rec->name[FIELD_SIZE - 1] = '\0';
-//   rec->score = score;
-// }
-
-// /** Return the size of the open file with file descriptor `fd`.
-//  * If the size cannot be determined, the function may abort program
-//  * execution (optionally after printing an error message).
-//  *
-//  * `filename` is used for diagnostic purposes only, and may be `NULL`.
-//  * If non-NULL, it represent the name of the file path from which
-//  * `fd` was obtained.
-//  *
-//  * \param filename name of the file path from which `fd` was obtained.
-//  * \param fd file descriptor for an open file.
-//  * \return the size of the file described by `fd`.
-//  */
-// size_t file_size(const char *filename, FILE * fp)
-// {
-
-//   // int fseek(fd, 0L, SEEK_END);
-
-//   // return ftell(fd);
-//   return -1;
-// }
-
-// /** Parse a \ref score_record struct from an
-//  * array of size \ref REC_SIZE.
-//  *
-//  * If a name and score cannot be found in `rec_buf`,
-//  * the function may abort program
-//  * execution (optionally after printing an error message).
-//  *
-//  * \param rec_buf an array of size \ref REC_SIZE.
-//  * \return a parsed \ref score_record.
-//  */
-// struct score_record parse_record(char rec_buf[REC_SIZE])
-// {
-//   struct score_record rec;
-//   // void score_record_init(struct score_record *rec, const char *name, int score)
-//   score_record_init(&rec, "foo", 2);
-
-//   // Note that writing the `rec_buf` parameter as `rec_buf[REC_SIZE]`
-//   // serves only as documentation of the intended use of the
-//   // function - C doesn't prevent arrays of other sizes being passed.
-//   //
-//   // In fact, nearly any time you use an array type in C,
-//   // it "decays" into a pointer -
-//   // the C11 standard, sec 6.3.2.1 ("Lvalues, arrays, and
-//   // function designators").
-//   //
-//   // (One significant exception is when you use sizeof() on an
-//   // array - in that case, the proper size of the array is
-//   // returned.)
-//   return rec;
-// }
-
-// /** Stores the player name and score in `rec` into a buffer of size
-//  * \ref REC_SIZE, representing a line from the scores file.
-//  *
-//  * The fields of rec should contain values that are valid for the
-//  * scores file; if not, the behaviour of the function is undefined.
-//  *
-//  * If the caller passes a buffer of size less than \ref REC_SIZE,
-//  * the behaviour of function is undefined.
-//  *
-//  * \param buf a `char` array of size \ref REC_SIZE.
-//  * \param rec pointer to a player's score record.
-//  */
-// void store_record(char buf[REC_SIZE], const struct score_record *rec)
-// {
-// }
-
-// /** search within the open scores file with file descriptor
-//  * `fd` for a line containing the score for `player_name`.
-//  * If no such line exists, -1 is returned; otherwise, the
-//  * offset within the file is returned.
-//  *
-//  * `filename` is used only for diagnostic purposes.
-//  *
-//  * \param filename name of the file described by `fd`.
-//  * \param fd file descriptor for an open scores file.
-//  * \param player_name player name to seek for.
-//  * \return position in the file where a record can be found,
-//  *   or -1 if no no such record exists.
-//  */
-// off_t find_record(const char *filename, int fd, const char *player_name)
-// {
-//   return -1;
-// }
-
-// /** Adjust the score for player `player_name` in the open file
-//  * with file descriptor `fd`, incrementing it by
-//  * `score_to_add`. If no record for a player with that name
-//  * is found in the file, then one is created and appended to
-//  * the file.
-//  *
-//  * The `filename` parameter is purely for diagnostic purposes.
-//  *
-//  * If the file is not a valid "scores" file, or player name is
-//  * longer than the allowable length for a score record,
-//  * the function may abort program execution.
-//  *
-//  * \param filename name of the file from which `fd` was obtained.
-//  * \param fd file descriptor for an open scores file.
-//  * \param player_name name of the player whose score should be incremented.
-//  * \param score_to_add amount by which to increment the score.
-//  */
-// void adjust_score_file(const char *filename, int fd, const char *player_name, int score_to_add)
-// {
-// }
-
-
-static uid_t ruid, euid, rgid, egid;
-/* Make effecive user ID = the real user ID */
-void drop_privs()
+/* Set effective user ID to the real user ID provided, dropping privileges. */
+int drop_privs(uid_t uid, char **message)
 {
-
-  return;
   int status1;
   int status2;
-  // status1 = seteuid(ruid);
-  // status2 = setegid(rgid);
-  printf("ruid, euid: %i %i\n", ruid, euid);
+
+  status2 = setegid(getgid());
+  status1 = seteuid(uid);
+
+  printf("ruid, euid, rgid, egid %d %d %d %d\n", getuid(), geteuid(), getgid(), getegid());
 
   if (status1 < 0)
   {
-    fprintf(stderr, "Couldn't set uid.\n");
-    exit(status1);
+    char *error_message = malloc(250 * sizeof(char)); // 250 character string perhaps
+    error_message = "Couldn't set user ID.";
+    *message = error_message;
+    exit(EXIT_FAILURE);
   }
   if (status2 < 0)
   {
-    fprintf(stderr, "Couldn't set group uid.\n");
-    exit(status2);
+    char *error_message = malloc(250 * sizeof(char));
+    error_message = "Couldn't set group ID.";
+    *message = error_message;
+    exit(EXIT_FAILURE);
   }
-  return;
+  return 1;
 }
-/* Make real ID = effective ID
-This will increase the privileges of the calling process */
-void get_privs()
-{
 
-  return;
+/* Set the real user ID to the effective, gaining privileges. */
+int get_privs(char **message)
+{
   int status1;
   int status2;
-  status1 = setuid(euid);
-  status2 = setgid(egid);
-  printf("ruid, euid: %i %i\n", ruid, euid);
+
+  status2 = setgid(getgid());
+  status1 = setuid(getuid());
 
   if (status1 < 0)
   {
-    fprintf(stderr, "Couldn't set uid.\n");
-    exit(status1);
+    char *error_message = malloc(250 * sizeof(char));
+    error_message = "Couldn't set user ID.";
+    *message = error_message;
+    exit(EXIT_FAILURE);
   }
   if (status2 < 0)
   {
-    fprintf(stderr, "Couldn't set group uid.\n");
-    exit(status2);
+    char *error_message = malloc(250 * sizeof(char));
+    error_message = "Couldn't set group ID.";
+    *message = error_message;
+    exit(EXIT_FAILURE);
   }
-  return;
+  return 1;
 }
 
-/** Adjust the score for player `player_name`, incrementing it by
- * `score_to_add`. The player's current score (if any) and new score
- * are stored in the scores file at `/var/lib/curdle/scores`.
- * The scores file is owned by user ID `uid`, and the process should
- * use that effective user ID when reading and writing the file.
- * If the score was changed successfully, the function returns 1; if
- * not, it returns 0, and sets `*message` to the address of
- * a string containing an error message. It is the caller's responsibility
- * to free `*message` after use.
- *
- * \todo implement the function.
- *
- * \param uid user ID of the owner of the scores file.
- * \param player_name name of the player whose score should be incremented.
- * \param score_to_add amount by which to increment the score.
- * \param message address of a pointer in which an error message can be stored.
- * \return 1 if the score was successfully changed, 0 if not.
- */
 int adjust_score(uid_t uid, const char *player_name, int score_to_add, char **message)
 {
-
-  ruid = uid;
   FILE *fp;
+  // const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/tests/test-files/good/file1";
+  // const char *filename = "boo.txt";
+  const char *filename = "/var/lib/curdle/scores";
 
   char line[REC_SIZE];
   char line_player[FIELD_SIZE];
   char line_score[FIELD_SIZE];
-  char new_name[FIELD_SIZE];
-  const char *filename = "/home/siri/cits3007/curdle-skeleton-code/curdle/tests/test-files/good/file1";
-  // const char *filename = "/var/lib/curdle/scores";
 
-  int bytes = 0;
-  int count = 0;
   char newline[REC_SIZE];
-  int int_line_score = 0;
-
+  char new_name[FIELD_SIZE];
   char strscore[FIELD_SIZE];
   char new_score[FIELD_SIZE];
 
-  
+  int bytes = 0;
+  int count = 0;
+  int int_line_score = 0;
 
-  // parse name
+  printf("tmp %d\n", uid);
+
+  long final_pos = (long)malloc(sizeof(long));
+
+  // Setting variables to all \0 so they are 10 in length and padded
   memset(new_name, 0, FIELD_SIZE);
   memset(newline, 0, REC_SIZE);
-
+  memset(new_score, 0, FIELD_SIZE);
+  memset(strscore, 0, FIELD_SIZE);
   strncpy(new_name, player_name, FIELD_SIZE);
 
-  get_privs();
-  fp = fopen(filename, "r+");
+  printf("tmp %d\n", INT_MAX);
+  printf("tmp %d\n", INT_MIN);
 
-  drop_privs();
+  // get_privs(message);
+  fp = fopen(filename, "r+");
+  // drop_privs(ruid, message);
+
+  // Initialise end of file to find position where new player is added
+  fseek(fp, 0, SEEK_END);
+  final_pos = ftell(fp);
+
+  // File is empty
+  if (ftell(fp) == 0)
+  {
+    sprintf(strscore, "%i", score_to_add);
+    strncpy(new_score, strscore, FIELD_SIZE);
+
+    // Copy both fields into new line and add \n at end
+    strncpy(newline, new_name, strlen(new_name));
+    sprintf(&newline[10], "%s", strscore);
+    sprintf(&newline[20], "%s", "\n");
+
+    fseek(fp, -0, SEEK_END);
+    for (size_t i = 0; i < REC_SIZE; i++)
+    {
+      fputc(newline[i], fp);
+    }
+    fclose(fp);
+    return 0;
+  }
+
+  // Reset file pointer to start again
+  fseek(fp, 0, SEEK_SET);
 
   if (fp == NULL)
   {
-    printf("exit\n");
-    printf("Error message: %s", *message);
+    char *error_message = malloc(250 * sizeof(char));
+    error_message = "File unable to be opened or doesn't exist.";
+    *message = error_message;
     exit(EXIT_FAILURE);
   }
 
-  while (fgets(line, REC_SIZE+1, fp) != NULL)
+  // Reading every line and parsing it
+  while (fgets(line, REC_SIZE + 1, fp) != NULL)
   {
-    
-    
-    
+    if (ftell(fp) < 21)
+    {
+      char *error_message = malloc(250 * sizeof(char));
+      error_message = "File invalid. Line too short.";
+      *message = error_message;
+      exit(EXIT_FAILURE);
+    }
+
+    if (line[20] != '\n')
+    {
+      char *error_message = malloc(250 * sizeof(char));
+      error_message = "File invalid. Line too long.";
+      *message = error_message;
+      exit(EXIT_FAILURE);
+    }
+
+    if (line[0] == '\n')
+    {
+
+      char *error_message = malloc(250 * sizeof(char));
+      error_message = "File invalid. Blank lines in between.";
+      *message = error_message;
+      exit(EXIT_FAILURE);
+    }
+
     if (line[0] != '\n')
     {
-      // parsing through allllll the strings
+
+      // Parses the line into the player name and score
       strncpy(line_player, line, FIELD_SIZE);
       strncpy(line_score, &line[10], FIELD_SIZE);
-     
-      line_player[FIELD_SIZE - 1] = 0;
-   
-      int ret = strncmp(player_name, line_player, FIELD_SIZE);
 
-      if (ret == 0)
+      // If player exists, modifies score
+      if (strncmp(player_name, line_player, FIELD_SIZE) == 0) // false
       {
-
         int_line_score = atoi(line_score);
-
-        // printf("bf line_score %i\n", int_line_score);
 
         int_line_score += score_to_add;
 
         sprintf(strscore, "%i", int_line_score);
-      
-        memset(new_score, 0, FIELD_SIZE);
-        strncpy(new_score, strscore, FIELD_SIZE);
+        memcpy(new_score, strscore, FIELD_SIZE + 1);
 
-        // printf("af new_score %s\n", new_score);
-       
-       
-        
-     
-
+        // Copy both fields into new line and add \n at end
         strncpy(newline, new_name, strlen(new_name));
-
-        
         sprintf(&newline[10], "%s", strscore);
-
-        
         sprintf(&newline[20], "%s", "\n");
-        // for (size_t i = 0; i < REC_SIZE; i++)
-        // {
-        //   printf("newline after adding strscore[i] %c\n", newline[i]);
-        // }
 
-       
         fseek(fp, bytes, SEEK_SET);
 
-        for (size_t i = 0; i < REC_SIZE; i++) 
+        for (size_t i = 0; i < REC_SIZE; i++)
         {
-          
           fputc(newline[i], fp);
         }
+        fclose(fp);
+        return 1;
+      }
+
+      // If player doesn't exist, put player name and score into new line and add to file
+      if (ftell(fp) == final_pos)
+      {
+
+        sprintf(strscore, "%i", score_to_add);
+        strncpy(new_score, strscore, FIELD_SIZE);
+
+        // Copy both fields into new line and add \n at end
+        strncpy(newline, new_name, strlen(new_name));
+        sprintf(&newline[10], "%s", strscore);
+        sprintf(&newline[20], "%s", "\n");
+
+        fseek(fp, -0, SEEK_END);
+        for (size_t i = 0; i < REC_SIZE; i++)
+        {
+          fputc(newline[i], fp);
+        }
+
+        fclose(fp);
+        return 1;
       }
     }
-    
 
     count++;
     bytes = 21 * count;
   }
-
   fclose(fp);
-
-  return 0;
-}
-
-int main()
-{
-  
-  char *message;
-  
-  ruid = getuid();
-  euid = geteuid();
-  rgid = getgid();
-  egid = getegid();
-
-  drop_privs();
-  message = "Error message, check main()";
-  
-  adjust_score(1001, "idH0O0", 10, &message); // in here, privileges are dropped
-
-  return 0;
+  return 1;
 }
